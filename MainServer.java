@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+package newpeer;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -41,9 +37,7 @@ public class MainServer implements Runnable {
     public MainServer() {
     }
 
-    MainServer(UserInterface ui) {
-        //  this.ui=ui;   
-    }
+   
 
     public static void main(String[] args) {
         try {
@@ -243,12 +237,12 @@ public class MainServer implements Runnable {
             Iterator it = routingInfo.entrySet().iterator();
             int j = 1, Targetflag = 0;
             while (it.hasNext()) {
-                JSONObject routingEntries = new JSONObject();
+               // JSONObject routingEntries = new JSONObject();
                 Map.Entry entry = (Map.Entry) it.next();
-                routingEntries.put("node_id", entry.getKey());
-                routingEntries.put("ip_address", entry.getValue());
+               // routingEntries.put("node_id", entry.getKey());
+               // routingEntries.put("ip_address", entry.getValue());
                 
-                if (entry.getKey().toString().equals(jsonobject.get("sender_id"))) {
+                if (entry.getKey().toString().equals((String)jsonobject.get("sender_id"))) {
                     Targetflag = 0;
                     JSONObject pingJson = new JSONObject();
                         pingJson.put("type", "PINGACK");
@@ -288,13 +282,13 @@ public class MainServer implements Runnable {
         try {
             findClosest(jsonobject);
             JSONObject chatJson = new JSONObject();
-            chatJson.put("type", "CHAT_RESPONSE");
+            chatJson.put("type", "CHAT_ACK");
             chatJson.put("TAG", (String) jsonobject.get("TAG"));
-            chatJson.put("node_id", (String) jsonobject.get("node_id"));
-            chatJson.put("sender_id", (String) jsonobject.get("tonode_id"));
+            chatJson.put("node_id", (String) jsonobject.get("tonode_id"));
+            chatJson.put("sender_id", (String) jsonobject.get("node_id"));
 
             Iterator it = routingInfo.entrySet().iterator();
-            int j = 1, Targetflag = 0;
+            int j = 1, Targetflag = 0,messageflag=0;
             while (it.hasNext()) {
                 //JSONObject routingEntries = new JSONObject();
                 Map.Entry entry = (Map.Entry) it.next();
@@ -305,9 +299,11 @@ public class MainServer implements Runnable {
                     PrintWriter output = new PrintWriter(socket[j].getOutputStream(), true);
                     output.println(chatJson);
                 }
-
+                // System.out.println("entry.getKey().toString()gyyyr"+entry.getKey().toString()+" ...."+(String)jsonobject.get("tonode_id")); 
                 if (entry.getKey().toString().equals((String) jsonobject.get("tonode_id"))) {
                     Targetflag = 0;
+                    messageflag=1;
+                   // System.out.println("hiii");
                     JSONObject routingJson = new JSONObject();
                     routingJson.put("type", "Chat_INFO");
                     routingJson.put("TAG", (String) jsonobject.get("node_id"));
@@ -317,9 +313,16 @@ public class MainServer implements Runnable {
                     routingJson.put("message", (String) jsonobject.get("message"));
                     PrintWriter output1 = new PrintWriter(socket[j].getOutputStream(), true);
                     output1.println(routingJson);
+                   // System.out.println("ddwwerre");
                    // break;
                 } else {
+                    if(messageflag==0){
                     Targetflag = 1;
+                    }
+                    else
+                    {
+                     Targetflag = 0;   
+                    }
                 }
                 j++;
                 //routingInfoArray.add(routingEntries);
@@ -470,3 +473,4 @@ class ReadMesssageServer implements Runnable {
         }
     }
 }
+
