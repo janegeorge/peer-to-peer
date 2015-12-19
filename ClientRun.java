@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+package newpeer;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,7 +24,7 @@ public class ClientRun implements PeerChat, Runnable {
     private static OutputStream os;
     private static InputStream is;
     private static int port = 5000;
-    static String host = "localhost";
+    static String host = "169.254.47.46";
     static InetAddress ipAddr;
     static InetSocketAddress remote;
 
@@ -50,7 +46,8 @@ public class ClientRun implements PeerChat, Runnable {
     public static void routingList() {
         try {
             // System.out.println("bootstrap_node.getAddress()"+remote.getAddress());
-            String ips = remote.getAddress().toString();
+            ipAddr = InetAddress.getLocalHost();
+            String ips = ipAddr.getHostAddress().toString();
             ips = ips.substring(ips.lastIndexOf('.') + 1, ips.length());
             System.out.println("ips" + ips);
             int nodeId = 0;
@@ -98,7 +95,8 @@ public class ClientRun implements PeerChat, Runnable {
     public static void leave() {
         try {
             // System.out.println("bootstrap_node.getAddress()"+remote.getAddress());
-            String ips = remote.getAddress().toString();
+            ipAddr = InetAddress.getLocalHost();
+            String ips = ipAddr.getHostAddress().toString();
             ips = ips.substring(ips.lastIndexOf('.') + 1, ips.length());
             System.out.println("ips" + ips);
             int nodeId = 0;
@@ -131,7 +129,8 @@ public class ClientRun implements PeerChat, Runnable {
     public static void ping() {
         try {
             // System.out.println("bootstrap_node.getAddress()"+remote.getAddress());
-            String ips = remote.getAddress().toString();
+            ipAddr = InetAddress.getLocalHost();
+            String ips = ipAddr.getHostAddress().toString();
             ips = ips.substring(ips.lastIndexOf('.') + 1, ips.length());
             System.out.println("ips" + ips);
             int nodeId = 0;
@@ -165,12 +164,13 @@ public class ClientRun implements PeerChat, Runnable {
     public static void clientChat() {
         try {
             // System.out.println("bootstrap_node.getAddress()"+remote.getAddress());
-            String ips = remote.getAddress().toString();
+           ipAddr = InetAddress.getLocalHost();
+            String ips = ipAddr.getHostAddress().toString();
             ips = ips.substring(ips.lastIndexOf('.') + 1, ips.length());
             System.out.println("ips" + ips);
             int nodeId = 0;
             nodeId = Integer.parseInt(ips);
-            ipAddr = InetAddress.getLocalHost();
+            //ipAddr = InetAddress.getLocalHost();
             JSONObject jsonobj = new JSONObject();
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Enter TAG : ");
@@ -232,12 +232,13 @@ public class ClientRun implements PeerChat, Runnable {
         long x = 0;
         try {
             System.out.println("bootstrap_node.getAddress()" + bootstrap_node.getAddress());
-            String ips = bootstrap_node.getAddress().toString();
+            ipAddr = InetAddress.getLocalHost();
+            String ips = ipAddr.getHostAddress().toString();
             ips = ips.substring(ips.lastIndexOf('.') + 1, ips.length());
             System.out.println("ips" + ips);
             int nodeId = 0;
             nodeId = Integer.parseInt(ips);
-            ipAddr = InetAddress.getLocalHost();
+            
             JSONObject jsonobj = new JSONObject();
 
             jsonobj.put("type", "JOINING_NETWORK");
@@ -380,10 +381,12 @@ class ReadMesssage implements Runnable {
                     // sr.routingInformation(socket, jsonObject);
                 } else if (jsonString.indexOf("Chat_INFO") != -1) {
                     //sr.chat(socket,jsonObject);
+                     System.out.println("Tag is " + (String) jsonObject.get("TAG"));
+                    // System.out.println("NodeID is " + (String) jsonObject.get("node_id"));
                     System.out.println("message is " + (String) jsonObject.get("message"));
-                } else if (jsonString.indexOf("CHAT_RESPONSE") != -1) {
+                } else if (jsonString.indexOf("CHAT_ACK") != -1) {
                     // sr.leaveNetwork(jsonObject);
-                    System.out.println("CHAT RESPONSE :: ");
+                    System.out.println("CHAT ACK :: ");
                     System.out.println(message);
                 } else if (jsonString.indexOf("PINGACK") != -1) {
                     // sr.ping(socket,jsonObject);
