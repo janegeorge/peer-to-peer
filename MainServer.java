@@ -1,3 +1,8 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package newpeer;
 
 import java.io.BufferedReader;
@@ -20,7 +25,7 @@ import org.json.simple.JSONObject;
 
 /**
  *
- * @author Jane george
+ * @author janeeer
  */
 public class MainServer implements Runnable {
 
@@ -33,11 +38,13 @@ public class MainServer implements Runnable {
     // UserInterface ui;
     int port = 5000;
     static HashMap<String, String> routingInfo = new HashMap<String, String>();
-
+    static HashMap<String, String> clientmessage = new HashMap<String, String>();
     public MainServer() {
     }
 
-   
+   // MainServer(UserInterface ui) {
+        //  this.ui=ui;   
+    //}
 
     public static void main(String[] args) {
         try {
@@ -245,9 +252,9 @@ public class MainServer implements Runnable {
                 if (entry.getKey().toString().equals((String)jsonobject.get("sender_id"))) {
                     Targetflag = 0;
                     JSONObject pingJson = new JSONObject();
-                        pingJson.put("type", "PINGACK");
-                 pingJson.put("node_id", jsonobject.get("sender_id"));
-                pingJson.put("ip_address", (String) jsonobject.get("ip_address"));
+                  pingJson.put("type", "PINGACK");
+                  pingJson.put("node_id", jsonobject.get("sender_id"));
+                  pingJson.put("ip_address", (String) jsonobject.get("ip_address"));
                     PrintWriter output1 = new PrintWriter(socket[j].getOutputStream(), true);
                     output1.println(pingJson);
                     break;
@@ -262,17 +269,60 @@ public class MainServer implements Runnable {
                 System.out.println("Target node is not available in my routing list");
             }
             
-//            
-//            
-//            
-//            
-//            PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
-//            JSONObject pingJson = new JSONObject();
-//            pingJson.put("type", "PINGACK");
-//            pingJson.put("node_id", jsonobject.get("sender_id"));
-//            pingJson.put("ip_address", (String) jsonobject.get("ip_address"));
-//            // output.println("");
-//            output.println(pingJson);
+
+        } catch (Exception e) {
+            System.out.println("Exception in sendACK");
+        }
+    }
+    
+        public void chatRetrive( JSONObject jsonobject) {
+        try {
+            
+            
+            Iterator it = clientmessage.entrySet().iterator();
+            int j = 1, Targetflag = 0,messageflag=0,k=1;
+            JSONObject pingJson = new JSONObject();
+                pingJson.put("type", "CHAT_RESPONSE");
+                pingJson.put("TAG", (String)jsonobject.get("TAG"));
+                pingJson.put("node_id", (String)jsonobject.get("target_id"));
+                pingJson.put("sender_id", (String) jsonobject.get("sender_id"));
+            while (it.hasNext()) {
+                Map.Entry entry = (Map.Entry) it.next();
+                
+                if (entry.getKey().toString().equals((String)jsonobject.get("TAG"))) {
+                    if(socket[j].getInetAddress().toString().contains((String) jsonobject.get("ip_address"))){
+                    Targetflag = 0;
+                    messageflag=1;
+                    k=j;
+                    pingJson.put("response", entry.getValue().toString());
+                    }
+                } else {
+                    if(messageflag==0){
+                       if(socket[j].getInetAddress().toString().contains((String) jsonobject.get("ip_address"))){
+                        Targetflag = 1;
+                        k=j;
+                        }
+                    }
+                    else{
+                        Targetflag = 0;
+                    }
+                }
+                j++;
+                //routingInfoArray.add(routingEntries);
+            }
+            j = 1;
+            if (Targetflag == 1) {
+                //System.out.println("Target node is not available in my routing list");
+                 pingJson.put("response", "");
+                PrintWriter output1 = new PrintWriter(socket[k].getOutputStream(), true);
+                output1.println(pingJson);
+            }
+            else{
+                PrintWriter output1 = new PrintWriter(socket[k].getOutputStream(), true);
+                output1.println(pingJson);
+            }
+            
+
         } catch (Exception e) {
             System.out.println("Exception in sendACK");
         }
@@ -282,10 +332,10 @@ public class MainServer implements Runnable {
         try {
             findClosest(jsonobject);
             JSONObject chatJson = new JSONObject();
-            chatJson.put("type", "CHAT_ACK");
+            chatJson.put("type", "ACK_CHAT");
             chatJson.put("TAG", (String) jsonobject.get("TAG"));
-            chatJson.put("node_id", (String) jsonobject.get("tonode_id"));
-            chatJson.put("sender_id", (String) jsonobject.get("node_id"));
+           // chatJson.put("node_id", (String) jsonobject.get("tonode_id"));
+            chatJson.put("node_id", (String) jsonobject.get("node_id"));
 
             Iterator it = routingInfo.entrySet().iterator();
             int j = 1, Targetflag = 0,messageflag=0;
@@ -294,34 +344,33 @@ public class MainServer implements Runnable {
                 Map.Entry entry = (Map.Entry) it.next();
                 //routingEntries.put("node_id", entry.getKey());
                 //routingEntries.put("ip_address", entry.getValue());
-                // System.out.println("entry.getKey().toString()"+entry.getKey().toString()+" ...."+(String)jsonobject.get("node_id"));
+               //  System.out.println("entry.getKey().toString()"+entry.getKey().toString()+" ...."+(String)jsonobject.get("node_id"));
                 if (entry.getKey().toString().equals((String) jsonobject.get("node_id"))) {
                     PrintWriter output = new PrintWriter(socket[j].getOutputStream(), true);
                     output.println(chatJson);
                 }
-                // System.out.println("entry.getKey().toString()gyyyr"+entry.getKey().toString()+" ...."+(String)jsonobject.get("tonode_id")); 
+  // System.out.println("entry.getKey().toString()"+entry.getKey().toString()+" ...."+(String)jsonobject.get("node_id"));
+              
                 if (entry.getKey().toString().equals((String) jsonobject.get("tonode_id"))) {
                     Targetflag = 0;
                     messageflag=1;
-                   // System.out.println("hiii");
                     JSONObject routingJson = new JSONObject();
-                    routingJson.put("type", "Chat_INFO");
+                    routingJson.put("type", "Chat");
+                    routingJson.put("target_id", (String) jsonobject.get("tonode_id"));
+                    routingJson.put("sender_id", (String) jsonobject.get("node_id"));
+                   // routingJson.put("ip_address", (String) jsonobject.get("ip_address"));
                     routingJson.put("TAG", (String) jsonobject.get("node_id"));
-                    routingJson.put("node_id", (String) jsonobject.get("node_id"));
-                    routingJson.put("ip_address", (String) jsonobject.get("ip_address"));
-                    routingJson.put("tonode_id", (String) jsonobject.get("tonode_id"));
                     routingJson.put("message", (String) jsonobject.get("message"));
                     PrintWriter output1 = new PrintWriter(socket[j].getOutputStream(), true);
                     output1.println(routingJson);
-                   // System.out.println("ddwwerre");
+                    clientmessage.put((String) jsonobject.get("TAG"), (String) jsonobject.get("message"));
                    // break;
                 } else {
                     if(messageflag==0){
-                    Targetflag = 1;
+                       Targetflag = 1;
                     }
-                    else
-                    {
-                     Targetflag = 0;   
+                    else{
+                        Targetflag = 0;
                     }
                 }
                 j++;
@@ -374,8 +423,10 @@ public class MainServer implements Runnable {
                    System.out.println("Routing Table after removing the node");
                    System.out.println(routingInfo);
                     JSONObject routingJson = new JSONObject();
-                    routingJson.put("type", "LEAVE");
-                    routingJson.put("routingInfo", routingInfo);
+                  
+                    routingJson.put("type", "LEAVING_NETWORK");
+                    routingJson.put("node_id",(String) jsonobject.get("node_id"));
+                    //routingJson.put("routingInfo", routingInfo);
                     PrintWriter output1 = new PrintWriter(socket[j].getOutputStream(), true);
                     output1.println(routingJson);
                     break;
@@ -385,8 +436,9 @@ public class MainServer implements Runnable {
                    System.out.println("Routing Table after removing the node");
                    System.out.println(routingInfo);
                     JSONObject routingJson = new JSONObject();
-                    routingJson.put("type", "LEAVE");
-                    routingJson.put("routingInfo", routingInfo);
+                    routingJson.put("type", "LEAVING_NETWORK");
+                    routingJson.put("node_id",(String) jsonobject.get("node_id"));
+                   // routingJson.put("routingInfo", routingInfo);
                     PrintWriter output1 = new PrintWriter(socket[j].getOutputStream(), true);
                     output1.println(routingJson);
                     break;
@@ -441,10 +493,13 @@ class ReadMesssageServer implements Runnable {
                     sr.routingInformation(socket, jsonObject);
                 } else if (jsonString.indexOf("CHAT") != -1) {
                     sr.chat(socket, jsonObject);
-                } else if (jsonString.indexOf("LEAVE") != -1) {
+                } else if (jsonString.indexOf("LEAVING_NETWORK") != -1) {
                     sr.leaveNetwork(jsonObject);
                 } else if (jsonString.indexOf("PING") != -1) {
                     sr.ping(socket, jsonObject);
+                }
+                else if (jsonString.indexOf("RETRIEVE") != -1) {
+                    sr.chatRetrive(jsonObject);
                 }
                 if (message.equalsIgnoreCase("Bye")) {
 
@@ -473,4 +528,6 @@ class ReadMesssageServer implements Runnable {
         }
     }
 }
+
+
 
