@@ -1,0 +1,24 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package newpeer;
+
+import java.net.InetSocketAddress;
+import java.net.Socket;
+
+/**
+ *
+ * @author Jane
+ */
+public interface PeerChat {
+    void init(Socket socket, int uid); // initialise with a TCP server socket and unique id for node
+    long joinNetwork(InetSocketAddress bootstrap_node); //returns network_id, a locally
+                                       // generated number to identify peer network
+    boolean leaveNetwork(long network_id); // parameter is previously returned peer network identifier
+    void chat(String text, String[] tags);
+   // ChatResult[] getChat(String[] words)
+
+}
